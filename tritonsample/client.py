@@ -12,24 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Client for mlp_random example."""
+"""Example client script for multiple_models example."""
 import logging
 
 import numpy as np
 
 from pytriton.client import ModelClient
 
-logger = logging.getLogger("examples.mlp_random_tensorflow2.client")
+logger = logging.getLogger("examples.multiple_models_python.client")
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s: %(message)s")
 
-batch_size = 16
-image_size = (224, 224, 3)
-images_batch = np.random.uniform(size=(batch_size,) + image_size).astype(np.float32)
+batch_size = 2
+a_batch = np.ones((batch_size, 1), dtype=np.float32)
 
-logger.info(f"Input: {images_batch}")
+logger.info(f"a: {a_batch.tolist()}")
 
-with ModelClient("localhost", "MLP") as client:
-    logger.info("Sending request")
-    result_dict = client.infer_batch(images_batch)
+with ModelClient("localhost", "Multiply2") as client2:
+    with ModelClient("localhost", "Multiply4") as client4:
+        result2_batch = client2.infer_batch(a_batch)
+        result4_batch = client4.infer_batch(result2_batch['product'])
 
-logger.info(f"results: {result_dict}")
+for output_name, data_batch in result2_batch.items():
+    logger.info(f"Multiply2/{output_name}: {data_batch.tolist()}")
+for output_name, data_batch in result4_batch.items():
+    logger.info(f"Multiply4/{output_name}: {data_batch.tolist()}")

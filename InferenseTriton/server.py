@@ -14,16 +14,16 @@ MODEL = tf.keras.models.load_model('model')
 
 
 @batch
-def _infer_fn(inputs):
+def _infer_gpt(inputs):
     output1_batch, _ = MODEL.predict(inputs)
     return [output1_batch]
 
 
 with Triton() as triton:
-    logger.info("Loading MLP model.")
+    logger.info("Loading GPT model.")
     triton.bind(
-        model_name="MLP",
-        infer_func=_infer_fn,
+        model_name="GPT",
+        infer_func=_infer_gpt,
         inputs=[
             Tensor(name="inputs", dtype=np.int64, shape=(80,)),
         ],
